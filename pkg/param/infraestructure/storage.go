@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/angelmendozacap/go-structure/pkg/tag/application"
-	"github.com/angelmendozacap/go-structure/pkg/tag/domain"
-	"github.com/angelmendozacap/go-structure/pkg/tag/infraestructure/mysql"
+	"github.com/angelmendozacap/go-structure/pkg/param/application"
+	"github.com/angelmendozacap/go-structure/pkg/param/domain"
+	"github.com/angelmendozacap/go-structure/pkg/param/infraestructure/mysql"
 )
 
 const (

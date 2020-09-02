@@ -6,33 +6,32 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/angelmendozacap/go-structure/pkg/tag/infraestructure"
-
+	"github.com/angelmendozacap/go-structure/message"
 	"github.com/labstack/echo/v4"
 
-	"github.com/angelmendozacap/go-structure/message"
-	"github.com/angelmendozacap/go-structure/pkg/tag/domain"
+	paramDom "github.com/angelmendozacap/go-structure/pkg/param/domain"
+	paramInf "github.com/angelmendozacap/go-structure/pkg/param/infraestructure"
 )
 
-// TagHandler estructura que tiene los handler de tag
-type TagHandler struct {
+// ParamHandler estructura que tiene los handler de tag
+type ParamHandler struct {
 	Engine string
 	DB     *sql.DB
 }
 
-// NewTagHandler devuelve un puntero a Handler.
-func NewTagHandler(engine string, db *sql.DB) *TagHandler {
-	return &TagHandler{engine, db}
+// NewParamHandler devuelve un puntero a Handler.
+func NewParamHandler(engine string, db *sql.DB) *ParamHandler {
+	return &ParamHandler{engine, db}
 }
 
 // Create handler para crear un registro de user
-func (h *TagHandler) Create(c echo.Context) error {
+func (h *ParamHandler) Create(c echo.Context) error {
 	mr := message.ResponseMessage{}
-	m := &domain.Tag{}
+	m := &paramDom.Param{}
 
 	err := c.Bind(m)
 	if err != nil {
-		log.Printf("warning: la estructura user no es correcta. Handler user.Create: %v", err)
+		log.Printf("warning: la estructura param no es correcta. Handler user.Create: %v", err)
 		mr.AddError(
 			strconv.Itoa(http.StatusBadRequest),
 			"¡Upps! debes enviarnos una estructura valida",
@@ -41,7 +40,7 @@ func (h *TagHandler) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, mr)
 	}
 
-	ms := infraestructure.NewStore(h.Engine, h.DB)
+	ms := paramInf.NewStore(h.Engine, h.DB)
 	err = ms.Create(m)
 	if err != nil {
 		log.Printf("error: no se pudo registrar el modelo. Handler user.Create: %v", err)
@@ -60,22 +59,13 @@ func (h *TagHandler) Create(c echo.Context) error {
 }
 
 // Update handler para actualizar un registro de user
-func (h *TagHandler) Update(c echo.Context) error {
+func (h *ParamHandler) Update(c echo.Context) error {
 	mr := message.ResponseMessage{}
-	m := &domain.Tag{}
+	m := &paramDom.Param{}
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("warning: el id debe ser numérico. Handler user.Update: %v", err)
-		mr.AddError(
-			strconv.Itoa(http.StatusBadRequest),
-			"¡Upps! el id que nos enviaste no es un número entero",
-			"",
-		)
-		return c.JSON(http.StatusBadRequest, mr)
-	}
+	id := c.Param("id")
 
-	err = c.Bind(m)
+	err := c.Bind(m)
 	if err != nil {
 		log.Printf("warning: la estructura no es correcta. Handler user.Update: %v", err)
 		mr.AddError(
@@ -86,9 +76,9 @@ func (h *TagHandler) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, mr)
 	}
 
-	ms := infraestructure.NewStore(h.Engine, h.DB)
-	m.ID = uint(id)
-	err = ms.Update(m.ID, m)
+	ms := paramInf.NewStore(h.Engine, h.DB)
+	m.ParamID = id
+	err = ms.Update(m.ParamID, m)
 	if err != nil {
 		log.Printf("error: error al actualizar. Handler user.Update: %v", err)
 		mr.AddError(
@@ -105,55 +95,14 @@ func (h *TagHandler) Update(c echo.Context) error {
 	return c.JSON(http.StatusOK, mr)
 }
 
-// Delete handler para eliminar un registro de user
-func (h *TagHandler) Delete(c echo.Context) error {
-	mr := message.ResponseMessage{}
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("warning: el id debe ser numérico. Handler user.Delete: %v", err)
-		mr.AddError(
-			strconv.Itoa(http.StatusBadRequest),
-			"¡Upps! el id que nos enviaste no es un número entero",
-			"",
-		)
-		return c.JSON(http.StatusBadRequest, mr)
-	}
-
-	ms := infraestructure.NewStore(h.Engine, h.DB)
-	err = ms.Delete(uint(id))
-	if err != nil {
-		log.Printf("error: error al borrar el id: %d. Handler user.Delete: %v", id, err)
-		mr.AddError(
-			strconv.Itoa(http.StatusInternalServerError),
-			"¡Upps! no pudimos eliminar el registro",
-			"para descubrir que sucedio revisa los log del servicio",
-		)
-		return c.JSON(http.StatusInternalServerError, mr)
-	}
-
-	mr.AddMessage(strconv.Itoa(http.StatusOK), "¡listo!", "")
-
-	return c.JSON(http.StatusOK, mr)
-}
-
 // GetByID handler para obtener un registro de user
-func (h *TagHandler) GetByID(c echo.Context) error {
+func (h *ParamHandler) GetByID(c echo.Context) error {
 	mr := message.ResponseMessage{}
 
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		log.Printf("warning: el id debe ser numérico. Handler user.GetByID: %v", err)
-		mr.AddError(
-			strconv.Itoa(http.StatusBadRequest),
-			"¡Upps! el id que nos enviaste no es un número entero",
-			"",
-		)
-		return c.JSON(http.StatusBadRequest, mr)
-	}
+	id := c.Param("id")
 
-	ms := infraestructure.NewStore(h.Engine, h.DB)
-	res, err := ms.GetByID(uint(id))
+	ms := paramInf.NewStore(h.Engine, h.DB)
+	res, err := ms.GetByID(id)
 	if err == sql.ErrNoRows {
 		mr.AddMessage(
 			strconv.Itoa(http.StatusNoContent),
@@ -163,7 +112,39 @@ func (h *TagHandler) GetByID(c echo.Context) error {
 		return c.JSON(http.StatusOK, mr)
 	}
 	if err != nil {
-		log.Printf("error: no se pudo obtener los datos solicitados del id: %d. Handler user.GetByID: %v", id, err)
+		log.Printf("error: no se pudo obtener los datos solicitados del id: %s. Handler user.GetByID: %v", id, err)
+		mr.AddError(
+			strconv.Itoa(http.StatusInternalServerError),
+			"¡Upps! no pudimos consultar la información",
+			"para descubrir que sucedio revisa los log del servicio",
+		)
+		return c.JSON(http.StatusInternalServerError, mr)
+	}
+
+	mr.AddMessage(strconv.Itoa(http.StatusOK), "¡listo!", "")
+	mr.Data = res
+
+	return c.JSON(http.StatusOK, mr)
+}
+
+// ToggleActive handler toggles active field
+func (h *ParamHandler) ToggleActive(c echo.Context) error {
+	mr := message.ResponseMessage{}
+
+	id := c.Param("id")
+
+	ms := paramInf.NewStore(h.Engine, h.DB)
+	res, err := ms.ToggleActive(id)
+	if err == sql.ErrNoRows {
+		mr.AddMessage(
+			strconv.Itoa(http.StatusNoContent),
+			"nos dimos cuenta que no tenemos datos para este id",
+			"",
+		)
+		return c.JSON(http.StatusOK, mr)
+	}
+	if err != nil {
+		log.Printf("error: no se pudo obtener los datos solicitados del id: %s. Handler user.GetByID: %v", id, err)
 		mr.AddError(
 			strconv.Itoa(http.StatusInternalServerError),
 			"¡Upps! no pudimos consultar la información",
@@ -179,10 +160,10 @@ func (h *TagHandler) GetByID(c echo.Context) error {
 }
 
 // GetAll handler para obtener todos los registro de user
-func (h *TagHandler) GetAll(c echo.Context) error {
+func (h *ParamHandler) GetAll(c echo.Context) error {
 	mr := message.ResponseMessage{}
 
-	ms := infraestructure.NewStore(h.Engine, h.DB)
+	ms := paramInf.NewStore(h.Engine, h.DB)
 	res, err := ms.GetAll()
 	if err != nil {
 		log.Printf("error: no se pudo obtener la información. Handler user.GetAll: %v", err)
