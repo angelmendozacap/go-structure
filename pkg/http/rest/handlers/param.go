@@ -144,7 +144,7 @@ func (h *ParamHandler) ToggleActive(c echo.Context) error {
 		return c.JSON(http.StatusOK, mr)
 	}
 	if err != nil {
-		log.Printf("error: no se pudo obtener los datos solicitados del id: %s. Handler user.GetByID: %v", id, err)
+		log.Printf("error: no se pudo obtener los datos solicitados del id: %s. Handler param.ToggleActive: %v", id, err)
 		mr.AddError(
 			strconv.Itoa(http.StatusInternalServerError),
 			"¡Upps! no pudimos consultar la información",
@@ -153,7 +153,7 @@ func (h *ParamHandler) ToggleActive(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, mr)
 	}
 
-	mr.AddMessage(strconv.Itoa(http.StatusOK), "¡listo!", "")
+	mr.AddMessage(strconv.Itoa(http.StatusOK), "Active field updated successfully.", "")
 	mr.Data = res
 
 	return c.JSON(http.StatusOK, mr)

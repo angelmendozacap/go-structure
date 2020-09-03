@@ -4,14 +4,14 @@ import "time"
 
 // Param model for params
 type Param struct {
-	ParamID      string    `json:"param_id"`
+	ParamID      string    `json:"paramId"`
 	Name         string    `json:"name"`
 	Value        string    `json:"value"`
 	Active       uint8     `json:"active"`
-	InsUserID    uint      `json:"ins_user_id"`
-	InsDate      time.Time `json:"ins_date"`
-	InsDateTime  time.Time `json:"ins_date_time"`
-	InsTimestamp int       `json:"ins_timestamp"`
+	InsUserID    uint      `json:"insUserId"`
+	InsDate      time.Time `json:"insDate"`
+	InsDateTime  time.Time `json:"insDateTime"`
+	InsTimestamp int       `json:"insTimestamp"`
 }
 
 // Params Param pointers slice
