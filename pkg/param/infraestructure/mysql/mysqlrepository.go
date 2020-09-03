@@ -13,6 +13,7 @@ import (
 // Mysql estructura de conexión a la BD de mysql
 type Mysql struct {
 	DB *sql.DB
+	Tx *sql.Tx
 }
 
 var (
@@ -59,9 +60,9 @@ func (m *Mysql) Create(param *domain.Param) error {
 	return nil
 }
 
-// Update actualiza un registro en la BD
-func (m *Mysql) Update(paramID string, param *domain.Param) error {
-	stmt, err := m.DB.Prepare(mysqlUpdate)
+// UpdateTX actualiza un registro en la BD
+func (m *Mysql) UpdateTX(tx *sql.Tx, paramID string, param *domain.Param) error {
+	stmt, err := tx.Prepare(mysqlUpdate)
 	if err != nil {
 		return err
 	}

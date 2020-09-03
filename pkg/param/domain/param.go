@@ -9,9 +9,9 @@ type Param struct {
 	Value        string    `json:"value"`
 	Active       uint8     `json:"active"`
 	InsUserID    uint      `json:"insUserId"`
-	InsDate      time.Time `json:"insDate"`
-	InsDateTime  time.Time `json:"insDateTime"`
-	InsTimestamp int64     `json:"insTimestamp"`
+	InsDate      time.Time `json:"insDate,omitempty"`
+	InsDateTime  time.Time `json:"insDateTime,omitempty"`
+	InsTimestamp int64     `json:"insTimestamp,omitempty"`
 }
 
 // Params Param pointers slice

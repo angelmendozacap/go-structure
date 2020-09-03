@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -11,6 +12,8 @@ import (
 
 	paramDom "github.com/angelmendozacap/go-structure/pkg/param/domain"
 	paramInf "github.com/angelmendozacap/go-structure/pkg/param/infraestructure"
+	paramAuditDom "github.com/angelmendozacap/go-structure/pkg/paramaudit/domain"
+	paramAuditInf "github.com/angelmendozacap/go-structure/pkg/paramaudit/infraestructure"
 )
 
 // ParamHandler estructura que tiene los handler de tag
@@ -61,11 +64,11 @@ func (h *ParamHandler) Create(c echo.Context) error {
 // Update handler para actualizar un registro de user
 func (h *ParamHandler) Update(c echo.Context) error {
 	mr := message.ResponseMessage{}
-	m := &paramDom.Param{}
+	param := &paramDom.Param{}
 
 	id := c.Param("id")
 
-	err := c.Bind(m)
+	err := c.Bind(param)
 	if err != nil {
 		log.Printf("warning: la estructura no es correcta. Handler user.Update: %v", err)
 		mr.AddError(
@@ -77,10 +80,20 @@ func (h *ParamHandler) Update(c echo.Context) error {
 	}
 
 	ms := paramInf.NewStore(h.Engine, h.DB)
-	m.ParamID = id
-	err = ms.Update(m.ParamID, m)
+	param.ParamID = id
+	prevParam, err := ms.GetByID(param.ParamID)
 	if err != nil {
-		log.Printf("error: error al actualizar. Handler user.Update: %v", err)
+		mr.AddMessage(
+			strconv.Itoa(http.StatusNoContent),
+			"nos dimos cuenta que no tenemos datos para este id",
+			"",
+		)
+		return c.JSON(http.StatusOK, mr)
+	}
+
+	tx, err := h.DB.Begin()
+	if err != nil {
+		log.Printf("error: error al actualizar. Handler param.Update: %v", err)
 		mr.AddError(
 			strconv.Itoa(http.StatusInternalServerError),
 			"¡Upps! no pudimos actualizar el registro",
@@ -89,8 +102,33 @@ func (h *ParamHandler) Update(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, mr)
 	}
 
+	if err := ms.UpdateTX(tx, param.ParamID, param); err != nil {
+		tx.Rollback()
+		log.Printf("error: error al actualizar. Handler param.Update: %v", err)
+		mr.AddError(
+			strconv.Itoa(http.StatusInternalServerError),
+			"¡Upps! no pudimos actualizar el registro",
+			"para descubrir que sucedio revisa los log del servicio",
+		)
+		return c.JSON(http.StatusInternalServerError, mr)
+	}
+
+	// Insert into params audit
+	paramAudit := &paramAuditDom.ParamsAudit{
+		PrevParam: *prevParam,
+		Param:     *param,
+		SetUserID: param.InsUserID,
+	}
+	pasServ := paramAuditInf.NewStore(h.Engine, h.DB)
+	if err := pasServ.CreateTX(tx, paramAudit); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("ParamsAudit: %w", err)
+	}
+
+	tx.Commit()
+
 	mr.AddMessage(strconv.Itoa(http.StatusOK), "¡listo!", "")
-	mr.Data = m
+	mr.Data = param
 
 	return c.JSON(http.StatusOK, mr)
 }

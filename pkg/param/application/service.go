@@ -1,6 +1,10 @@
 package application
 
-import "github.com/angelmendozacap/go-structure/pkg/param/domain"
+import (
+	"database/sql"
+
+	"github.com/angelmendozacap/go-structure/pkg/param/domain"
+)
 
 // Service for Params
 type Service struct {
@@ -19,9 +23,9 @@ func (s *Service) Create(m *domain.Param) error {
 	return s.Repo.Create(m)
 }
 
-// Update method updates a param
-func (s *Service) Update(paramID string, m *domain.Param) error {
-	return s.Repo.Update(paramID, m)
+// UpdateTX method updates a param
+func (s *Service) UpdateTX(tx *sql.Tx, paramID string, m *domain.Param) error {
+	return s.Repo.UpdateTX(tx, paramID, m)
 }
 
 // GetByID method retrieves a param
