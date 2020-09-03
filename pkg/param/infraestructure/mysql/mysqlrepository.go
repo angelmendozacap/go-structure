@@ -3,9 +3,11 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/angelmendozacap/go-structure/database/mysql"
 	"github.com/angelmendozacap/go-structure/pkg/param/domain"
+	"github.com/angelmendozacap/go-structure/utils"
 )
 
 // Mysql estructura de conexión a la BD de mysql
@@ -17,8 +19,10 @@ var (
 	table       = "Params"
 	mysqlInsert = fmt.Sprintf(`INSERT INTO %s
 		(paramId, name, value, active, insUserId, insDate, insDatetime, insTimestamp)
-		VALUES (?, ?, ?, ?, ¨?, ?, ?, ?)`, table)
-	mysqlUpdate = fmt.Sprintf("UPDATE %s SET name = ? WHERE paramId = ?", table)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, table)
+	mysqlUpdate = fmt.Sprintf(`UPDATE %s SET
+		name = ?, value = ?, active = ?
+		WHERE paramId = ?`, table)
 	mysqlGetAll = fmt.Sprintf(`SELECT
 		paramId, name, value, active,
 		insUserId, insDate, insDatetime, insTimestamp
@@ -36,6 +40,9 @@ func (m *Mysql) Create(param *domain.Param) error {
 	}
 	defer stmt.Close()
 
+	param.ParamID = strings.ToLower(param.ParamID)
+	param.Active = 1
+	now := utils.Now()
 	err = mysql.ExecAffectingOneRow(
 		stmt,
 		param.ParamID,
@@ -43,9 +50,7 @@ func (m *Mysql) Create(param *domain.Param) error {
 		param.Value,
 		param.Active,
 		param.InsUserID,
-		param.InsDate,
-		param.InsDateTime,
-		param.InsTimestamp,
+		now["date"], now["time"], now["unix"],
 	)
 	if err != nil {
 		return err
@@ -65,6 +70,8 @@ func (m *Mysql) Update(paramID string, param *domain.Param) error {
 	err = mysql.ExecAffectingOneRow(
 		stmt,
 		param.Name,
+		param.Value,
+		param.Active,
 		paramID,
 	)
 	if err != nil {

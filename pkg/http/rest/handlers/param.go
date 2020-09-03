@@ -31,7 +31,7 @@ func (h *ParamHandler) Create(c echo.Context) error {
 
 	err := c.Bind(m)
 	if err != nil {
-		log.Printf("warning: la estructura param no es correcta. Handler user.Create: %v", err)
+		log.Printf("warning: la estructura param no es correcta. Handler param.Create: %v", err)
 		mr.AddError(
 			strconv.Itoa(http.StatusBadRequest),
 			"¡Upps! debes enviarnos una estructura valida",
@@ -43,7 +43,7 @@ func (h *ParamHandler) Create(c echo.Context) error {
 	ms := paramInf.NewStore(h.Engine, h.DB)
 	err = ms.Create(m)
 	if err != nil {
-		log.Printf("error: no se pudo registrar el modelo. Handler user.Create: %v", err)
+		log.Printf("error: no se pudo registrar el modelo. Handler param.Create: %v", err)
 		mr.AddError(
 			strconv.Itoa(http.StatusInternalServerError),
 			"¡Upps! no pudimos crear el registro",
@@ -52,7 +52,7 @@ func (h *ParamHandler) Create(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, mr)
 	}
 
-	mr.AddMessage(strconv.Itoa(http.StatusCreated), "¡listo!", "")
+	mr.AddMessage(strconv.Itoa(http.StatusCreated), "Param Created Successfully", "")
 	mr.Data = m
 
 	return c.JSON(http.StatusCreated, mr)

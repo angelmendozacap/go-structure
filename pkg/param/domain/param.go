@@ -11,7 +11,7 @@ type Param struct {
 	InsUserID    uint      `json:"insUserId"`
 	InsDate      time.Time `json:"insDate"`
 	InsDateTime  time.Time `json:"insDateTime"`
-	InsTimestamp int       `json:"insTimestamp"`
+	InsTimestamp int64     `json:"insTimestamp"`
 }
 
 // Params Param pointers slice
